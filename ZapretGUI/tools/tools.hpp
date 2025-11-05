@@ -79,7 +79,7 @@ namespace tools
         if (messagebox)
         {
             std::string name = window::window_name;
-            MessageBoxW(0, to_wstring(head).c_str(), std::wstring(name.begin(), name.end()).c_str(), MB_OK);
+            MessageBoxW(0, to_wstring(head).c_str(), to_wstring(name).c_str(), MB_OK);
             return;
         }
 
@@ -96,8 +96,8 @@ namespace tools
         if (!window::toast_init)
         {
             std::string app = window::window_name;
-            WinToast::instance()->setAppName(std::wstring(app.begin(), app.end()));
-            const auto aumi = WinToast::configureAUMI(L"elllkere", L"misterfishdpi", std::wstring(), std::wstring(vars::version.begin(), vars::version.end()));
+            WinToast::instance()->setAppName(to_wstring(app));
+            const auto aumi = WinToast::configureAUMI(L"elllkere", L"misterfishdpi", std::wstring(), to_wstring(vars::version));
             WinToast::instance()->setAppUserModelId(aumi);
 
             if (!WinToast::instance()->initialize())
@@ -123,7 +123,7 @@ namespace tools
             if (messagebox_on_fail)
                 sendNotif(head, body, true, false);
 
-            MessageBoxA(0, std::format("Error: Could not launch toast notification - {}", (int)error).c_str(), window::window_name, MB_OK);
+            MessageBoxW(0, to_wstring(std::format("Error: Could not launch toast notification - {}", (int)error)).c_str(), to_wstring(window::window_name).c_str(), MB_OK);
         }
     }
 
@@ -217,7 +217,7 @@ namespace tools
             std::ofstream createFile(path);
             if (!createFile)
             {
-                MessageBoxA(0, std::format("Ошибка запуска процесса: {}", GetLastError()).c_str(), 0, 0);
+                MessageBoxW(0, to_wstring(std::format("Ошибка запуска процесса: {}", GetLastError())).c_str(), 0, 0);
                 return;
             }
 
@@ -226,7 +226,7 @@ namespace tools
 
             if (!file.is_open())
             {
-                MessageBoxA(0, std::format("Ошибка запуска процесса 2: {}", GetLastError()).c_str(), 0, 0);
+                MessageBoxW(0, to_wstring(std::format("Ошибка запуска процесса 2: {}", GetLastError())).c_str(), 0, 0);
                 return;
             }
         }
@@ -277,9 +277,9 @@ namespace tools
         AllocConsole();
         freopen("CONOUT$", "w", stdout);
 
-        setlocale(LC_ALL, "Rus");
-        SetConsoleOutputCP(1251);
-        SetConsoleCP(1251);
+        setlocale(LC_ALL, ".UTF8");
+        SetConsoleOutputCP(65001);  // UTF-8
+        SetConsoleCP(65001);        // UTF-8
 
         if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE))
         {
@@ -464,7 +464,7 @@ namespace tools
         HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
         if (FAILED(hr)) 
         {
-            MessageBoxA(0, "Ошибка при инициализации COM", 0, 0);
+            MessageBoxW(0, L"Ошибка при инициализации COM", 0, 0);
             return;
         }
 
@@ -472,7 +472,7 @@ namespace tools
         hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskService, (void**)&pService);
         if (FAILED(hr)) 
         {
-            MessageBoxA(0, "Не удалось создать экземпляр TaskScheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось создать экземпляр TaskScheduler", 0, 0);
             CoUninitialize();
             return;
         }
@@ -480,7 +480,7 @@ namespace tools
         hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
         if (FAILED(hr)) 
         {
-            MessageBoxA(0, "Не удалось подключиться к Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось подключиться к Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return;
@@ -490,7 +490,7 @@ namespace tools
         hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
         if (FAILED(hr)) 
         {
-            MessageBoxA(0, "Не удалось получить корневую папку Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось получить корневую папку Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return;
@@ -504,7 +504,7 @@ namespace tools
 
         if (FAILED(hr)) 
         {
-            MessageBoxA(0, "Не удалось создать новую задачу", 0, 0);
+            MessageBoxW(0, L"Не удалось создать новую задачу", 0, 0);
             pRootFolder->Release();
             CoUninitialize();
             return;
@@ -561,7 +561,7 @@ namespace tools
             _variant_t(), _variant_t(), TASK_LOGON_INTERACTIVE_TOKEN, _variant_t(L""), &pRegisteredTask);
 
         if (FAILED(hr))
-            MessageBoxA(0, std::format("Не удалось зарегистрировать задачу: {}", hr).c_str(), 0, 0);
+            MessageBoxW(0, to_wstring(std::format("Не удалось зарегистрировать задачу: {}", hr)).c_str(), 0, 0);
 
         pRegisteredTask->Release();
         pTask->Release();
@@ -575,7 +575,7 @@ namespace tools
         HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Ошибка при инициализации COM", 0, 0);
+            MessageBoxW(0, L"Ошибка при инициализации COM", 0, 0);
             return;
         }
 
@@ -583,7 +583,7 @@ namespace tools
         hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskService, (void**)&pService);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось создать экземпляр TaskScheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось создать экземпляр TaskScheduler", 0, 0);
             CoUninitialize();
             return;
         }
@@ -591,7 +591,7 @@ namespace tools
         hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось подключиться к Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось подключиться к Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return;
@@ -601,7 +601,7 @@ namespace tools
         hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось получить корневую папку Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось получить корневую папку Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return;
@@ -619,7 +619,7 @@ namespace tools
         HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Ошибка при инициализации COM", 0, 0);
+            MessageBoxW(0, L"Ошибка при инициализации COM", 0, 0);
             return false;
         }
 
@@ -627,7 +627,7 @@ namespace tools
         hr = CoCreateInstance(CLSID_TaskScheduler, NULL, CLSCTX_INPROC_SERVER, IID_ITaskService, (void**)&pService);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось создать экземпляр TaskScheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось создать экземпляр TaskScheduler", 0, 0);
             CoUninitialize();
             return false;
         }
@@ -635,7 +635,7 @@ namespace tools
         hr = pService->Connect(_variant_t(), _variant_t(), _variant_t(), _variant_t());
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось подключиться к Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось подключиться к Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return false;
@@ -645,7 +645,7 @@ namespace tools
         hr = pService->GetFolder(_bstr_t(L"\\"), &pRootFolder);
         if (FAILED(hr))
         {
-            MessageBoxA(0, "Не удалось получить корневую папку Task Scheduler", 0, 0);
+            MessageBoxW(0, L"Не удалось получить корневую папку Task Scheduler", 0, 0);
             pService->Release();
             CoUninitialize();
             return false;

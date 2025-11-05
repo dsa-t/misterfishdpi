@@ -1,5 +1,6 @@
 #pragma once
 #include "singbox.hpp"
+#include "../tools/tools.hpp"
 
 void Singbox::restart()
 {
@@ -45,7 +46,7 @@ void Singbox::startInternal()
 	std::string command = cur_path + "\\sing-box.exe" + " " + "run -c " + vars::json_singbox_name;
 
 	if (!CreateProcess(NULL, const_cast<char*>(command.c_str()), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-		MessageBoxA(0, std::format("Ошибка запуска процесса: {}", GetLastError()).c_str(), 0, 0);
+		MessageBoxW(0, tools::to_wstring(std::format("Ошибка запуска процесса: {}", GetLastError())).c_str(), 0, 0);
 }
 
 void Singbox::writeRule()

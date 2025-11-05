@@ -166,7 +166,7 @@ void relaunch(LPSTR lpCmdLine, bool admin = true)
     sei.nShow = SW_SHOWNORMAL;
 
     if (!ShellExecuteEx(&sei))
-        MessageBox(NULL, "Не удалось перезапустить приложение с правами администратора.", "Ошибка", MB_OK | MB_ICONERROR);
+        MessageBoxW(NULL, L"Не удалось перезапустить приложение с правами администратора.", L"Ошибка", MB_OK | MB_ICONERROR);
 }
 
 void update(const std::string& version, const LPSTR& lpCmdLine)

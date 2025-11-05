@@ -157,8 +157,17 @@ void ShowTrayContextMenu(HWND hwnd, POINT pt)
 {
     HMENU hMenu = CreatePopupMenu();
     if (hMenu) {
-        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_RESTORE, "Открыть");
-        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, "Выход");
+        // Convert UTF-8 strings to wide strings for proper display
+        auto utf8_to_wide = [](const char* utf8_str) -> std::wstring {
+            if (!utf8_str || !*utf8_str) return L"";
+            int size_needed = MultiByteToWideChar(CP_UTF8, 0, utf8_str, -1, nullptr, 0);
+            std::wstring wstr(size_needed - 1, 0);
+            MultiByteToWideChar(CP_UTF8, 0, utf8_str, -1, &wstr[0], size_needed);
+            return wstr;
+        };
+        
+        InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_RESTORE, utf8_to_wide(u8"Открыть").c_str());
+        InsertMenuW(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, utf8_to_wide(u8"Выход").c_str());
 
         SetForegroundWindow(hwnd);
         TrackPopupMenu(hMenu, TPM_BOTTOMALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, nullptr);
@@ -169,26 +178,26 @@ void ShowTrayContextMenu(HWND hwnd, POINT pt)
 
 void DestroyTrayIcon()
 {
-    NOTIFYICONDATA nid;
-    memset(&nid, 0, sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
+    NOTIFYICONDATAW nid;
+    memset(&nid, 0, sizeof(NOTIFYICONDATAW));
+    nid.cbSize = sizeof(NOTIFYICONDATAW);
     nid.hWnd = g_hWnd;
     nid.uID = 1;
-    Shell_NotifyIcon(NIM_DELETE, &nid);
+    Shell_NotifyIconW(NIM_DELETE, &nid);
 }
 
 void CreateTrayIcon()
 {
-    NOTIFYICONDATA nid;
-    memset(&nid, 0, sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
+    NOTIFYICONDATAW nid;
+    memset(&nid, 0, sizeof(NOTIFYICONDATAW));
+    nid.cbSize = sizeof(NOTIFYICONDATAW);
     nid.hWnd = g_hWnd;
     nid.uID = 1;
     nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid.hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1));
     nid.uCallbackMessage = WM_TRAYICON;
-    lstrcpy(nid.szTip, window::window_name);
-    Shell_NotifyIcon(NIM_ADD, &nid);
+    lstrcpyW(nid.szTip, L"MisterFish DPI");
+    Shell_NotifyIconW(NIM_ADD, &nid);
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp
