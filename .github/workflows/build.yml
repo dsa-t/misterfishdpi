@@ -95,6 +95,16 @@ jobs:
       run: |
         msbuild ZapretGUI.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m /v:minimal /fl "/flp:logfile=build-release.log;verbosity=diagnostic"
         
+    - name: List build output files
+      run: |
+        Write-Host "Looking for MisterFish.exe in the repository..."
+        Get-ChildItem -Path . -Filter "MisterFish.exe" -Recurse -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.FullName }
+        Write-Host "`nChecking expected paths:"
+        if (Test-Path "ZapretGUI/x64/Release/MisterFish.exe") { Write-Host "Found at: ZapretGUI/x64/Release/MisterFish.exe" }
+        if (Test-Path "x64/Release/MisterFish.exe") { Write-Host "Found at: x64/Release/MisterFish.exe" }
+        Write-Host "`nListing all .exe files in x64 directories:"
+        Get-ChildItem -Path . -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.FullName -like "*x64*" } | ForEach-Object { Write-Host $_.FullName }
+        
     - name: Upload Build Logs
       if: always()
       uses: actions/upload-artifact@v4
@@ -108,5 +118,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: MisterFish-x64
-        path: ZapretGUI/x64/Release/MisterFish.exe
+        path: |
+          **/x64/Release/MisterFish.exe
+          x64/Release/MisterFish.exe
         if-no-files-found: error
