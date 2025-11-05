@@ -219,7 +219,7 @@ void SharedZapret::terminate()
         SharedZapret* shared = dynamic_cast<SharedZapret*>(service);
         if (!shared && service->id_name == id_name)
         {
-            MessageBoxA(0, "Failed to start process: invalid shared service type", 0, 0);
+            MessageBoxW(0, L"Failed to start process: invalid shared service type", 0, 0);
             return;
         }
         else if (!shared)
@@ -245,7 +245,7 @@ void SharedZapret::terminate()
         service_file.close();
     }
     else
-        MessageBoxA(0, std::format("Failed to open file: {}", GetLastError()).c_str(), 0, 0);
+        MessageBoxW(0, tools::to_wstring(std::format("Failed to open file: {}", GetLastError())).c_str(), 0, 0);
 
     if (domains_used.empty())
         Zapret::removeArgs(this->info->shared_id);
@@ -268,7 +268,7 @@ void SharedZapret::start(const std::string& _l)
         SharedZapret* shared = dynamic_cast<SharedZapret*>(service);
         if (!shared && service->id_name == id_name)
         {
-            MessageBoxA(0, "Failed to start process: invalid shared service type", 0, 0);
+            MessageBoxW(0, L"Failed to start process: invalid shared service type", 0, 0);
             return;
         }
         else if (!shared)
@@ -294,7 +294,7 @@ void SharedZapret::start(const std::string& _l)
         service_file.close();
     }
     else
-        MessageBoxA(0, std::format("Failed to start process: {}", GetLastError()).c_str(), 0, 0);
+        MessageBoxW(0, tools::to_wstring(std::format("Failed to start process: {}", GetLastError())).c_str(), 0, 0);
 
     Zapret::start(this->info->shared_id);
 }

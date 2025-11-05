@@ -38,7 +38,7 @@ public:
             else
                 err = std::format("Failed to start process: {}", err_code);
 
-            MessageBoxA(0, err.c_str(), 0, 0);
+            MessageBoxW(0, tools::to_wstring(err).c_str(), 0, 0);
         }
         else
         {
@@ -86,7 +86,7 @@ public:
             {
                 DWORD err = GetLastError();
                 if (err != ERROR_INVALID_HANDLE)
-                    MessageBoxA(0, std::format("Failed to stop process: {}", err).c_str(), 0, 0);
+                    MessageBoxW(0, tools::to_wstring(std::format("Failed to stop process: {}", err)).c_str(), 0, 0);
             }
         }
 
