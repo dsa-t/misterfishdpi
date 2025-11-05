@@ -89,11 +89,11 @@ jobs:
         
     - name: Build Solution (Debug x64)
       run: |
-        msbuild ZapretGUI.sln /t:Build /p:Configuration=Debug /p:Platform=x64 /m /v:minimal /fl /flp:logfile=build-debug.log;verbosity=diagnostic
+        msbuild ZapretGUI.sln /t:Build /p:Configuration=Debug /p:Platform=x64 /m /v:minimal /fl "/flp:logfile=build-debug.log;verbosity=diagnostic"
         
     - name: Build Solution (Release x64)
       run: |
-        msbuild ZapretGUI.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m /v:minimal /fl /flp:logfile=build-release.log;verbosity=diagnostic
+        msbuild ZapretGUI.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m /v:minimal /fl "/flp:logfile=build-release.log;verbosity=diagnostic"
         
     - name: Upload Build Logs
       if: always()
