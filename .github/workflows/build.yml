@@ -25,7 +25,7 @@ jobs:
         
     - name: Install libcurl via vcpkg
       run: |
-        vcpkg install curl:x64-windows-static
+        vcpkg install curl[core,ssl]:x64-windows-static
         
     - name: Create curl library directories
       run: |
@@ -36,6 +36,11 @@ jobs:
         
     - name: Copy vcpkg curl files to expected locations
       run: |
+        # Debug: Show what we have
+        Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
+        Write-Host "Checking vcpkg installed files:"
+        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "*.lib" | Select-Object Name
+        
         # Copy include files
         Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Debug\include\"
         Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Release\include\"
@@ -45,6 +50,11 @@ jobs:
         
         # Copy library files for Release
         Copy-Item -Force "$env:VCPKG_ROOT\installed\x64-windows-static\lib\libcurl.lib" "libs\curl\x64\Release\lib\libcurl_a.lib"
+        
+        # Verify files were copied
+        Write-Host "Copied files:"
+        Get-ChildItem "libs\curl\x64\Debug\lib" | Select-Object Name
+        Get-ChildItem "libs\curl\x64\Release\lib" | Select-Object Name
         
     - name: Build Solution (Debug x64)
       run: |
