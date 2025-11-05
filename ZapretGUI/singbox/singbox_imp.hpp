@@ -1,5 +1,6 @@
 #pragma once
 #include "singbox.hpp"
+#include "../tools/tools.hpp"
 
 void Singbox::restart()
 {

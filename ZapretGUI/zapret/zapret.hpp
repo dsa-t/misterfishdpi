@@ -15,6 +15,11 @@ namespace vars
     extern json json_settings;
 }
 
+namespace tools
+{
+    std::wstring to_wstring(const std::string& str);
+}
+
 class Process {
 public:
 
