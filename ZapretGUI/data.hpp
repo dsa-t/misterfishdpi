@@ -232,36 +232,36 @@ namespace vars
     std::vector<ServiceBase*> render_services;
     std::map<int, std::string> providers =
     {
-        {providers_list::PROVIDER_OTHER, u8"Другой"},
-        {providers_list::PROVIDER_ROST, u8"Ростелеком"},
-        {providers_list::PROVIDER_MTS, u8"МТС"},
+        {providers_list::PROVIDER_OTHER, u8"Р”СЂСѓРіРѕР№"},
+        {providers_list::PROVIDER_ROST, u8"Р РѕСЃС‚РµР»РµРєРѕРј"},
+        {providers_list::PROVIDER_MTS, u8"РњРўРЎ"},
         {providers_list::PROVIDER_LOVIT, "Lovit"}
     };
 
     std::map<int, std::string> auto_starts =
     {
-        {0, u8"Планировщик задач (с вкл. UAC)"},
-        {1, u8"Реестр (с выкл. UAC)"},
-        {2, u8"Пользовательский"},
+        {0, u8"РџР»Р°РЅРёСЂРѕРІС‰РёРє Р·Р°РґР°С‡ (СЃ РІРєР». UAC)"},
+        {1, u8"Р РµРµСЃС‚СЂ (СЃ РІС‹РєР». UAC)"},
+        {2, u8"РџРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРёР№"},
     };
 
     std::map<int, std::string> x_methods =
     {
-        {0, u8"Закрыть"},
-        {1, u8"Свернуть"},
+        {0, u8"Р—Р°РєСЂС‹С‚СЊ"},
+        {1, u8"РЎРІРµСЂРЅСѓС‚СЊ"},
     };
     
     std::map<int, std::string> notifs =
     {
-        {0, u8"Windows уведомления"},
+        {0, u8"Windows СѓРІРµРґРѕРјР»РµРЅРёСЏ"},
         {1, u8"Messagebox"},
     };
 
     std::map<int, std::string> amazon_types =
     {
-        {0, u8"Вся сеть"},
-        {1, u8"Порты игр + сайты"},
-        {2, u8"Только сайты"}
+        {0, u8"Р’СЃСЏ СЃРµС‚СЊ"},
+        {1, u8"РџРѕСЂС‚С‹ РёРіСЂ + СЃР°Р№С‚С‹"},
+        {2, u8"РўРѕР»СЊРєРѕ СЃР°Р№С‚С‹"}
     };
 
     std::string version = "v25.1027.2154";

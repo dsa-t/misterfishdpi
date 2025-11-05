@@ -46,7 +46,7 @@ namespace window
     int name##_height = 0; \
     ID3D11ShaderResourceView* name##_texture = nullptr; \
     if (!LoadTextureFromMemory(name##_data, sizeof(name##_data), &name##_texture, &name##_width, &name##_height)) { \
-        tools::sendNotif(u8"Ошибка загрузки текстуры " #name, "", vars::notif != 0); \
+        tools::sendNotif(u8"РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё С‚РµРєСЃС‚СѓСЂС‹ " #name, "", vars::notif != 0); \
         ::DestroyWindow(g_hWnd); \
         return 0; \
     }
@@ -157,8 +157,8 @@ void ShowTrayContextMenu(HWND hwnd, POINT pt)
 {
     HMENU hMenu = CreatePopupMenu();
     if (hMenu) {
-        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_RESTORE, "Открыть");
-        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, "Выход");
+        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_RESTORE, "РћС‚РєСЂС‹С‚СЊ");
+        InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, ID_TRAY_EXIT, "Р’С‹С…РѕРґ");
 
         SetForegroundWindow(hwnd);
         TrackPopupMenu(hMenu, TPM_BOTTOMALIGN | TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, nullptr);
