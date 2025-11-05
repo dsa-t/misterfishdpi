@@ -44,9 +44,9 @@ jobs:
           -DCMAKE_USE_LIBSSH2=OFF `
           -DCURL_USE_LIBSSH2=OFF
         
-        # Build Release
+        # Build Release - just build the entire project
         Write-Host "Building curl (Release)..."
-        cmake --build . --config Release --target libcurl
+        cmake --build . --config Release
         
         cd ..\..
         Write-Host "Curl build complete"
