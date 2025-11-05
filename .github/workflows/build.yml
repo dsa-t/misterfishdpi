@@ -22,11 +22,11 @@ jobs:
       
     - name: Build libcurl from source without zlib
       run: |
-        # Clone curl repository
+        # Clone curl repository to libs directory
         Write-Host "Cloning curl repository..."
-        git clone --depth 1 --branch curl-8_5_0 https://github.com/curl/curl.git curl-source
+        git clone --depth 1 --branch curl-8_17_0 https://github.com/curl/curl.git libs\curl
         
-        cd curl-source
+        cd libs\curl
         
         # Create build directory
         mkdir build
@@ -42,50 +42,15 @@ jobs:
           -DHTTP_ONLY=OFF `
           -DCURL_DISABLE_LDAP=ON `
           -DCMAKE_USE_LIBSSH2=OFF `
-          -DCURL_USE_LIBSSH2=OFF
+          -DCURL_USE_LIBSSH2=OFF `
+          -DCURL_USE_LIBPSL=OFF
         
-        # Build Release - just build the entire project
+        # Build Release
         Write-Host "Building curl (Release)..."
         cmake --build . --config Release
         
-        cd ..\..
+        cd ..\..\..
         Write-Host "Curl build complete"
-        
-    - name: Create curl library directories
-      run: |
-        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Debug\lib"
-        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Debug\include"
-        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\lib"
-        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\include"
-        
-    - name: Copy curl files to expected locations
-      run: |
-        # Copy include files from curl source
-        Copy-Item -Recurse -Force "curl-source\include\curl" "libs\curl\x64\Debug\include\"
-        Copy-Item -Recurse -Force "curl-source\include\curl" "libs\curl\x64\Release\include\"
-        
-        # Copy library files
-        $libFile = Get-ChildItem "curl-source\build\lib\Release" -Filter "libcurl*.lib" | Select-Object -First 1
-        
-        if ($libFile) {
-          Write-Host "Found curl library: $($libFile.Name) at $($libFile.FullName)"
-          
-          # Copy for both Debug and Release (using Release build for both)
-          Copy-Item -Force $libFile.FullName "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
-          Copy-Item -Force $libFile.FullName "libs\curl\x64\Release\lib\libcurl_a.lib"
-        } else {
-          Write-Host "ERROR: Could not find curl library file"
-          Write-Host "Contents of build/lib/Release:"
-          Get-ChildItem "curl-source\build\lib\Release" -ErrorAction SilentlyContinue | Select-Object Name
-          Write-Host "Contents of build/lib:"
-          Get-ChildItem "curl-source\build\lib" -Recurse -ErrorAction SilentlyContinue | Select-Object Name
-          exit 1
-        }
-        
-        # Verify files were copied
-        Write-Host "Copied files:"
-        Get-ChildItem "libs\curl\x64\Debug\lib" | Select-Object Name
-        Get-ChildItem "libs\curl\x64\Release\lib" | Select-Object Name
         
     - name: Build Solution (Debug x64)
       run: |

@@ -143,13 +143,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>MisterFish</TargetName>
-    <IncludePath>$(SolutionDir)libs\minizip;$(SolutionDir)libs\zlib;$(SolutionDir)libs\wintoast;$(SolutionDir)libs\curl\x64\Debug\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)libs\curl\x64\Debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)libs\minizip;$(SolutionDir)libs\zlib;$(SolutionDir)libs\wintoast;$(SolutionDir)libs\curl\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\curl\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>MisterFish</TargetName>
-    <IncludePath>$(SolutionDir)libs\zlib;$(SolutionDir)libs\minizip;$(SolutionDir)libs\curl\x64\Release\include;$(SolutionDir)libs\wintoast;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)libs\curl\x64\Release\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)libs\zlib;$(SolutionDir)libs\minizip;$(SolutionDir)libs\curl\include;$(SolutionDir)libs\wintoast;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)libs\curl\build\lib\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -195,7 +195,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <AdditionalDependencies>libcurl_a_debug.lib;advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl.lib;advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;iphlpapi.lib;secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -223,7 +223,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
-      <AdditionalDependencies>libcurl_a.lib;advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcurl.lib;advapi32.lib;crypt32.lib;normaliz.lib;ws2_32.lib;wldap32.lib;iphlpapi.lib;secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
