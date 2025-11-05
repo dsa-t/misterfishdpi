@@ -42,7 +42,8 @@ jobs:
           -DHTTP_ONLY=OFF `
           -DCURL_DISABLE_LDAP=ON `
           -DCMAKE_USE_LIBSSH2=OFF `
-          -DCURL_USE_LIBSSH2=OFF
+          -DCURL_USE_LIBSSH2=OFF `
+          -DCURL_USE_LIBPSL=OFF
         
         # Build Release
         Write-Host "Building curl (Release)..."
