@@ -184,6 +184,8 @@ void ServiceBase::toggleActive()
         start();
     else
         terminate();
+
+    cached_running_status = isRunning();
 }
 
 Zapret::Zapret(const std::string& id_name, const std::string& txt)

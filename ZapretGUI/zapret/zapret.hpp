@@ -133,6 +133,7 @@ public:
     bool active = false;
     bool hide = false;
     bool panel_hide = false;
+    bool cached_running_status = false;
     ID3D11ShaderResourceView* texture = nullptr;
 };
 

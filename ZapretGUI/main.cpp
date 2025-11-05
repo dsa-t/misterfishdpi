@@ -565,20 +565,30 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     // Main loop
     bool quit = false;
+    static DWORD64 g_lastStatusCheck = 0;
+    static DWORD64 g_lastUserInteraction = GetTickCount64();
+    static DWORD64 g_lastRender = 0;
+
     while (!quit)
     {
         // Poll and handle messages (inputs, window resize, etc.)
         // See the WndProc() function below for our to dispatch events to the Win32 backend.
         MSG msg;
+        bool hadMessages = false;
         while (::PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
         {
             ::TranslateMessage(&msg);
             ::DispatchMessage(&msg);
             if (msg.message == WM_QUIT)
                 quit = true;
+            hadMessages = true;
         }
         if (quit)
             break;
+
+        // Update last interaction time if there was user input
+        if (hadMessages)
+            g_lastUserInteraction = GetTickCount64();
 
         if (vars::bHotkeys)
         {
@@ -590,6 +600,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
         }
 
+        // Update cached running status every second for all services
+        const DWORD64 now = GetTickCount64();
+        if (now - g_lastStatusCheck >= 1000)
+        {
+            g_lastStatusCheck = now;
+            for (auto* service : vars::render_services)
+            {
+                service->cached_running_status = service->isRunning();
+            }
+        }
+
         for (auto* service : vars::services)
         {
             if (!service->active)
@@ -598,7 +619,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             static DWORD64 g_lastWinwsCheck = 0;
             static int g_winwsRetries = 0;
 
-            if (!service->isRunning() && service->active)
+            if (!service->cached_running_status && service->active)
             {
                 if (g_winwsRetries == 5)
                 {
@@ -606,7 +627,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                     exit(0);
                 }
 
-                const DWORD64 now = GetTickCount64();
                 if (g_lastWinwsCheck == 0)
                     g_lastWinwsCheck = now;
 
@@ -615,7 +635,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                     g_lastWinwsCheck = now;
 
                     service->restart();
-                    if (!service->isRunning())
+                    service->cached_running_status = service->isRunning();
+                    if (!service->cached_running_status)
                         g_winwsRetries++;
                     else
                     {
@@ -632,6 +653,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             continue;
         }
 
+        // Check if window is visible
+        if (!IsWindowVisible(g_hWnd) || IsIconic(g_hWnd))
+        {
+            ::Sleep(10);
+            continue;
+        }
+
         // Handle window being minimized or screen locked
         if (g_SwapChainOccluded && g_pSwapChain->Present(0, DXGI_PRESENT_TEST) == DXGI_STATUS_OCCLUDED)
         {
@@ -639,6 +667,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             continue;
         }
         g_SwapChainOccluded = false;
+
+        // Throttle rendering to 2 Hz (500ms) when user is not interacting
+        const DWORD64 timeSinceInteraction = now - g_lastUserInteraction;
+        if (timeSinceInteraction > 2000)
+        {
+            const DWORD64 timeSinceRender = now - g_lastRender;
+            if (timeSinceRender < 500)
+            {
+                ::Sleep(10);
+                continue;
+            }
+        }
+        g_lastRender = now;
 
         // Handle window resize (we don't resize directly in the WM_SIZE handler)
         if (g_ResizeWidth != 0 && g_ResizeHeight != 0)
@@ -653,6 +694,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
+
+        // Detect user interaction via ImGui
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f || 
+            io.MouseClicked[0] || io.MouseClicked[1] || io.MouseClicked[2] ||
+            io.KeysDown[0] != 0)
+        {
+            g_lastUserInteraction = now;
+        }
 
         ImGui::SetNextWindowSize(ImVec2(window::g_Width, window::g_Height)); ImGui::SetNextWindowPos(ImVec2(0, 0));
         if (!ImGui::Begin("##begin", NULL, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings))
@@ -865,7 +915,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                     if (ImGui::IsItemHovered())
                     {
                         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-                        std::string status = service->isRunning() ? u8"Выключить" : u8"Включить";
+                        std::string status = service->cached_running_status ? u8"Выключить" : u8"Включить";
                         if (service->id_name == "custom")
                             status += u8"\n(URL добавлять в list-custom.txt)";
 
@@ -873,7 +923,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                     }
 
                     int alpha = service->panel_hide ? 100 : 255;
-                    if (service->isRunning())
+                    if (service->cached_running_status)
                         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(100, 255, 100, alpha));
                     else
                         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(120, 120, 120, alpha));
