@@ -24,7 +24,7 @@ jobs:
       run: |
         # Clone curl repository to libs directory
         Write-Host "Cloning curl repository..."
-        git clone --depth 1 --branch curl-8_5_0 https://github.com/curl/curl.git libs\curl
+        git clone --depth 1 --branch curl-8_17_0 https://github.com/curl/curl.git libs\curl
         
         cd libs\curl
         
