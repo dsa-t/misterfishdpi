@@ -20,24 +20,36 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
       
-    - name: Setup vcpkg
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
-    
-    - name: Cache vcpkg
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ env.VCPKG_ROOT }}/installed
-          ${{ env.VCPKG_ROOT }}/packages
-        key: ${{ runner.os }}-vcpkg-c8696863d371ab7f46e213d8f5ca923c4aef2a00-curl-ssl-x64-windows-static
-        restore-keys: |
-          ${{ runner.os }}-vcpkg-c8696863d371ab7f46e213d8f5ca923c4aef2a00-
-        
-    - name: Install libcurl via vcpkg
+    - name: Build libcurl from source without zlib
       run: |
-        vcpkg install "curl[core,schannel,sspi]:x64-windows-static"
+        # Clone curl repository
+        Write-Host "Cloning curl repository..."
+        git clone --depth 1 --branch curl-8_5_0 https://github.com/curl/curl.git curl-source
+        
+        cd curl-source
+        
+        # Create build directory
+        mkdir build
+        cd build
+        
+        # Configure with CMake - disable zlib and brotli
+        Write-Host "Configuring curl..."
+        cmake .. -G "Visual Studio 17 2022" -A x64 `
+          -DBUILD_SHARED_LIBS=OFF `
+          -DCURL_USE_SCHANNEL=ON `
+          -DCURL_ZLIB=OFF `
+          -DCURL_BROTLI=OFF `
+          -DHTTP_ONLY=OFF `
+          -DCURL_DISABLE_LDAP=ON `
+          -DCMAKE_USE_LIBSSH2=OFF `
+          -DCURL_USE_LIBSSH2=OFF
+        
+        # Build Release
+        Write-Host "Building curl (Release)..."
+        cmake --build . --config Release --target libcurl
+        
+        cd ..\..
+        Write-Host "Curl build complete"
         
     - name: Create curl library directories
       run: |
@@ -46,43 +58,29 @@ jobs:
         New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\lib"
         New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\include"
         
-    - name: Copy vcpkg curl files to expected locations
+    - name: Copy curl files to expected locations
       run: |
-        # Debug: Show what we have
-        Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
-        Write-Host "Checking vcpkg installed release libraries:"
-        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "libcurl*.lib" | Select-Object Name
-        Write-Host "Checking vcpkg installed debug libraries:"
-        if (Test-Path "$env:VCPKG_ROOT\installed\x64-windows-static\debug\lib") {
-          Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\debug\lib" -Filter "libcurl*.lib" | Select-Object Name
+        # Copy include files from curl source
+        Copy-Item -Recurse -Force "curl-source\include\curl" "libs\curl\x64\Debug\include\"
+        Copy-Item -Recurse -Force "curl-source\include\curl" "libs\curl\x64\Release\include\"
+        
+        # Copy library files
+        $libFile = Get-ChildItem "curl-source\build\lib\Release" -Filter "libcurl*.lib" | Select-Object -First 1
+        
+        if ($libFile) {
+          Write-Host "Found curl library: $($libFile.Name) at $($libFile.FullName)"
+          
+          # Copy for both Debug and Release (using Release build for both)
+          Copy-Item -Force $libFile.FullName "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
+          Copy-Item -Force $libFile.FullName "libs\curl\x64\Release\lib\libcurl_a.lib"
         } else {
-          Write-Host "No debug lib directory found, will use release library for both"
+          Write-Host "ERROR: Could not find curl library file"
+          Write-Host "Contents of build/lib/Release:"
+          Get-ChildItem "curl-source\build\lib\Release" -ErrorAction SilentlyContinue | Select-Object Name
+          Write-Host "Contents of build/lib:"
+          Get-ChildItem "curl-source\build\lib" -Recurse -ErrorAction SilentlyContinue | Select-Object Name
+          exit 1
         }
-        Write-Host "Include directories:"
-        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\include" | Select-Object Name
-        
-        # Copy include files
-        Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Debug\include\"
-        Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Release\include\"
-        
-        # Find and copy debug library
-        $debugLib = $null
-        if (Test-Path "$env:VCPKG_ROOT\installed\x64-windows-static\debug\lib") {
-          $debugLib = Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\debug\lib" -Filter "libcurl*.lib" | Select-Object -First 1
-        }
-        if ($debugLib) {
-          Write-Host "Found debug curl library: $($debugLib.Name)"
-          Copy-Item -Force $debugLib.FullName "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
-        } else {
-          Write-Host "No debug library found, using release library for debug configuration"
-          $releaseLib = Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "libcurl*.lib" | Select-Object -First 1
-          Copy-Item -Force $releaseLib.FullName "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
-        }
-        
-        # Find and copy release library
-        $releaseLib = Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "libcurl*.lib" | Select-Object -First 1
-        Write-Host "Found release curl library: $($releaseLib.Name)"
-        Copy-Item -Force $releaseLib.FullName "libs\curl\x64\Release\lib\libcurl_a.lib"
         
         # Verify files were copied
         Write-Host "Copied files:"
