@@ -1,0 +1,62 @@
+name: Build Windows x64
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+      
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+        
+    - name: Install libcurl via vcpkg
+      run: |
+        vcpkg install curl:x64-windows-static
+        
+    - name: Create curl library directories
+      run: |
+        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Debug\lib"
+        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Debug\include"
+        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\lib"
+        New-Item -ItemType Directory -Force -Path "libs\curl\x64\Release\include"
+        
+    - name: Copy vcpkg curl files to expected locations
+      run: |
+        # Copy include files
+        Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Debug\include\"
+        Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Release\include\"
+        
+        # Copy library files for Debug (using the static lib)
+        Copy-Item -Force "$env:VCPKG_ROOT\installed\x64-windows-static\lib\libcurl.lib" "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
+        
+        # Copy library files for Release
+        Copy-Item -Force "$env:VCPKG_ROOT\installed\x64-windows-static\lib\libcurl.lib" "libs\curl\x64\Release\lib\libcurl_a.lib"
+        
+    - name: Build Solution (Debug x64)
+      run: |
+        msbuild ZapretGUI.sln /t:Build /p:Configuration=Debug /p:Platform=x64 /m
+        
+    - name: Build Solution (Release x64)
+      run: |
+        msbuild ZapretGUI.sln /t:Build /p:Configuration=Release /p:Platform=x64 /m
+        
+    - name: Upload Release Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MisterFish-x64
+        path: ZapretGUI/x64/Release/MisterFish.exe
+        if-no-files-found: error
