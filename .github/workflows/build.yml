@@ -49,17 +49,22 @@ jobs:
         # Debug: Show what we have
         Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
         Write-Host "Checking vcpkg installed files:"
-        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "*.lib" | Select-Object Name
+        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "*curl*.lib" | Select-Object Name
+        Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\include" | Select-Object Name
         
         # Copy include files
         Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Debug\include\"
         Copy-Item -Recurse -Force "$env:VCPKG_ROOT\installed\x64-windows-static\include\curl" "libs\curl\x64\Release\include\"
         
-        # Copy library files for Debug (using the static lib)
-        Copy-Item -Force "$env:VCPKG_ROOT\installed\x64-windows-static\lib\libcurl.lib" "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
+        # Find the curl library file (could be libcurl.lib or similar)
+        $curlLib = Get-ChildItem "$env:VCPKG_ROOT\installed\x64-windows-static\lib" -Filter "*curl*.lib" | Select-Object -First 1
+        Write-Host "Found curl library: $($curlLib.Name)"
+        
+        # Copy library files for Debug (using the same static lib for both)
+        Copy-Item -Force $curlLib.FullName "libs\curl\x64\Debug\lib\libcurl_a_debug.lib"
         
         # Copy library files for Release
-        Copy-Item -Force "$env:VCPKG_ROOT\installed\x64-windows-static\lib\libcurl.lib" "libs\curl\x64\Release\lib\libcurl_a.lib"
+        Copy-Item -Force $curlLib.FullName "libs\curl\x64\Release\lib\libcurl_a.lib"
         
         # Verify files were copied
         Write-Host "Copied files:"
