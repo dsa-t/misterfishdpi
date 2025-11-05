@@ -37,7 +37,7 @@ jobs:
         
     - name: Install libcurl via vcpkg
       run: |
-        vcpkg install curl[core,ssl]:x64-windows-static
+        vcpkg install "curl[core,ssl,schannel,sspi,!zlib,!brotli]:x64-windows-static"
         
     - name: Create curl library directories
       run: |
